@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Tasked</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <script src="https://fb.me/react-0.14.7.js"></script>
+    <script src="https://fb.me/react-dom-0.14.7.js"></script>
+    <div class="container" id="container"></div>
+    <script>
+    var App = React.createClass({
+        displayName: 'App',
+        getInitialState: function() {
+            return {
+                tasks: [{
+                    text: "Hello World",
+                    completed: false
+                }, {
+                    text: "Flux",
+                    completed: false
+                }, {
+                    text: "ReactJS",
+                    completed: false
+                }, {
+                    text: "AngularJS",
+                    completed: true
+                }]
+            }
+        },
+        addTask: function(task) {
+            if (task.text) {
+                this.state.tasks.push(task);
+                this.setState(this.state);
+            }
+        },
+        saveTask: function(index, task) {
+            if (task.text) {
+                this.state.tasks[index] = task;
+                this.state.edit = null;
+                this.setState(this.state);
+            }
+        },
+        removeTask: function(index) {
+            if (index >= 0 && this.state.tasks.length > 0) {
+                this.state.tasks.splice(index, 1);
+                this.setState(this.state);
+            }
+        },
+        editTask: function(index) {
+            if (index >= 0 && this.state.tasks.length > 0) {
+                var task = this.state.tasks[index];
+                task.index = index
+                this.setState({
+                    edit: task
+                });
+            }
+        },
+        taskAction: function(index) {
+            this.state.tasks[index].completed = !this.state.tasks[index].completed;
+            this.setState(this.state);
+        },
+        render: function() {
+            return (
+                React.createElement("div", null,
+                    React.createElement(ToDoForm, {
+                        add: this.addTask,
+                        save: this.saveTask,
+                        edit: this.state.edit
+                    }),
+                    React.createElement(ToDoList, {
+                        tasks: this.state.tasks,
+                        remove: this.removeTask,
+                        edit: this.editTask,
+                        taskAction: this.taskAction
+                    })
+                )
+            );
+        }
+    });
+    var ToDoForm = React.createClass({
+        displayName: 'ToDoForm',
+        componentWillReceiveProps(newProps) {
+            if (newProps.edit) {
+                this.refs.task.value = newProps.edit.text;
+            }
+        },
+        handleAddSave: function() {
+            if (this.props.edit) {
+                var task = {
+                    text: this.refs.task.value,
+                    completed: this.props.edit.completed
+                };
+                this.props.save(this.props.edit.index, task);
+            } else {
+                var task = {
+                    text: this.refs.task.value,
+                    completed: false
+                };
+                this.props.add(task);
+            }
+            this.refs.task.value = '';
+        },
+        render: function() {
+            return (
+                React.createElement("div", {
+                        className: "jumbotron"
+                    },
+                    React.createElement("form", null,
+                        React.createElement("div", {
+                                className: "row"
+                            },
+                            React.createElement("div", {
+                                    className: "col-md-9"
+                                },
+                                React.createElement("div", {
+                                        className: "form-group"
+                                    },
+                                    React.createElement("input", {
+                                        type: "text",
+                                        className: "form-control",
+                                        placeholder: "Task",
+                                        ref: "task"
+                                    })
+                                )
+                            ),
+                            React.createElement("div", {
+                                    className: "col-md-3"
+                                },
+                                React.createElement("button", {
+                                    type: "button",
+                                    onClick: this.handleAddSave,
+                                    className: "btn btn-primary btn-block"
+                                }, this.props.edit ? 'Save' : 'Add')
+                            )
+                        )
+                    )
+                )
+            )
+        }
+    });
+    var TaskAction = React.createClass({
+        displayName: 'TaskAction',
+        handleStatus: function() {
+            this.props.setStatus(this.props.index);
+        },
+        handleEdit: function() {
+            this.props.edit(this.props.index);
+        },
+        handleRemove: function() {
+            this.props.remove(this.props.index);
+        },
+        getButton: function() {
+            if (!this.props.completed) {
+                return (
+                    React.createElement("button", {
+                            type: "button",
+                            onClick: this.handleStatus,
+                            className: "btn btn-xs btn-success"
+                        },
+                        React.createElement("i", {
+                            className: "glyphicon glyphicon-ok"
+                        })
+                    )
+                )
+            } else {
+                return (
+                    React.createElement("button", {
+                            type: "button",
+                            onClick: this.handleStatus,
+                            className: "btn btn-xs btn-info"
+                        },
+                        React.createElement("i", {
+                            className: "glyphicon glyphicon-repeat"
+                        })
+                    )
+                )
+            }
+        },
+        render: function() {
+            return (
+                React.createElement("div", {
+                        className: "btn-group btn-group-xs pull-right",
+                        role: "group"
+                    },
+                    this.getButton(),
+                    React.createElement("button", {
+                            type: "button",
+                            onClick: this.handleEdit,
+                            className: "btn btn-xs btn-primary"
+                        },
+                        React.createElement("i", {
+                            className: "glyphicon glyphicon-pencil"
+                        })
+                    ),
+                    React.createElement("button", {
+                            type: "button",
+                            onClick: this.handleRemove,
+                            className: "btn btn-xs btn-danger"
+                        },
+                        React.createElement("i", {
+                            className: "glyphicon glyphicon-remove"
+                        })
+                    )
+                )
+            )
+        }
+    })
+    var ToDoList = React.createClass({
+        displayName: 'ToDoList',
+        render: function() {
+            return (
+                React.createElement("div", {
+                        className: "row"
+                    },
+                    React.createElement("div", {
+                            className: "col-lg-12"
+                        },
+                        React.createElement("h4", null, "Tasks"),
+                        React.createElement("hr", null),
+                        React.createElement("ul", {
+                                className: "list-group"
+                            },
+
+                            this.props.tasks.map(function(task, index) {
+                                var cssClass = 'list-group-item list-group-item-';
+                                if (task.completed) {
+                                    cssClass += 'info';
+                                } else {
+                                    cssClass += 'success';
+                                }
+                                return (
+                                    React.createElement("li", {
+                                            key: index,
+                                            className: cssClass
+                                        },
+                                        React.createElement(TaskAction, {
+                                            index: index,
+                                            completed: task.completed,
+                                            setStatus: this.props.taskAction,
+                                            edit: this.props.edit,
+                                            remove: this.props.remove
+                                        }),
+                                        task.text
+                                    )
+                                )
+                            }, this)
+
+                        )
+                    )
+                )
+            )
+        }
+    });
+    ReactDOM.render(
+        React.createElement(App, null),
+        document.getElementById('container')
+    );
+    </script>
+</body>
+
+</html>
